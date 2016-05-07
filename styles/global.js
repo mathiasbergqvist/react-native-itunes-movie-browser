@@ -12,6 +12,6 @@ module.exports = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#CCC'
+    backgroundColor: '#EFEFEF'
   },
 });
