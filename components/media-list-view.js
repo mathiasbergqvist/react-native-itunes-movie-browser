@@ -3,7 +3,8 @@ import {
   View,
   Text,
   TextInput,
-  AlertIOS
+  AlertIOS,
+  ActivityIndicatorIOS
 } from 'react-native';
 import TimerMixin from 'react-timer-mixin';
 
@@ -26,7 +27,11 @@ class SearchBar extends Component {
           enablesReturnKeyAutomatically={true}
           style={styles.listView.searchBarInput}
           onChange={this.props.onSearch}
-        />
+          />
+        <ActivityIndicatorIOS
+          animating={this.props.isLoading}
+          style={styles.listView.spinner}
+          />
       </View>
     );
   }
@@ -34,6 +39,13 @@ class SearchBar extends Component {
 var MediaListView = React.createClass({
   mixins: [TimerMixin],
   timeoutID: null,
+  getInitialState: function (){
+    return{
+      isLoading: false,
+      query: '',
+      resultsData: []
+    };
+  },
   _urlForQuery: function(query: string): string{
     if(query.length > 2){
       return API_URL + '?media=movie&term=' + encodeURIComponent(query);
@@ -44,17 +56,29 @@ var MediaListView = React.createClass({
   },
   searchMedia: function(query: string){
     this.timeoutID = null;
+    this.setState({query: query});
     let cachedResultsForQuery = resultsCache.dataForQuery[query];
     if(cachedResultsForQuery) {
       if (!LOADING[query]) {
-        AlertIOS.alert('Number of results', cachedResultsForQuery.length + ' cached results');
-        return cachedResultsForQuery;
+        this.setState({
+          isLoading: false,
+          resultsData: cachedResultsForQuery
+        });
+      }
+      else{
+        this.setState({
+          isLoading: true
+        });
       }
     }
     else{
       let queryURL = this._urlForQuery(query);
 
       if(!queryURL) return;
+
+      this.setState({
+        isLoading: true
+      });
 
       LOADING[query] = true;
       resultsCache.dataForQuery[query] = null;
@@ -63,28 +87,38 @@ var MediaListView = React.createClass({
       .catch((error) => {
         LOADING[query] = false;
         resultsCache.dataForQuery[query] = undefined;
+
+        this.setState({
+          isLoading: false
+        });
       })
       .then((responseData) => {
         LOADING[query] = false;
         resultsCache.dataForQuery[query] = responseData.results;
-        AlertIOS.alert('Number of results', responseData.resultCount + ' results');
+
+        this.setState({
+          isLoading: false,
+          resultsData: resultsCache.dataForQuery[query]
+        });
       })
     }
   },
   render(){
     return(
       <View style={styles.global.content}>
-        <SearchBar onSearch={(event) => {
+        <SearchBar
+          isLoading={this.state.isLoading}
+          onSearch={(event) => {
             let searchString = event.nativeEvent.text;
             this.clearTimeout(this.timeoutID);
             this.timeoutID = this.setTimeout(() => this.searchMedia(searchString), 250);
           }}/>
-        <Text>
-          Bacon ipsum dolor amet ham hock brisket alcatra, shankle pork chop picanha hamburger. Tongue tail sausage bacon bresaola beef shoulder chicken venison shankle corned beef strip steak. T-bone short ribs sirloin tenderloin, beef tongue pork loin short loin beef ribs shank flank. Ball tip cupim sirloin boudin ribeye brisket flank. Chuck swine flank beef ribs, pastrami ham fatback strip steak landjaeger.
-        </Text>
-      </View>
-    );
-  }
-});
+          <Text>
+            Bacon ipsum dolor amet ham hock brisket alcatra, shankle pork chop picanha hamburger. Tongue tail sausage bacon bresaola beef shoulder chicken venison shankle corned beef strip steak. T-bone short ribs sirloin tenderloin, beef tongue pork loin short loin beef ribs shank flank. Ball tip cupim sirloin boudin ribeye brisket flank. Chuck swine flank beef ribs, pastrami ham fatback strip steak landjaeger.
+          </Text>
+        </View>
+      );
+    }
+  });
 
-module.exports = MediaListView;
+  module.exports = MediaListView;
