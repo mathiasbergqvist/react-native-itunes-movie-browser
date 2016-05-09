@@ -4,7 +4,8 @@ import {
   Text,
   TextInput,
   AlertIOS,
-  ActivityIndicatorIOS
+  ActivityIndicatorIOS,
+  ListView
 } from 'react-native';
 import TimerMixin from 'react-timer-mixin';
 
@@ -43,8 +44,16 @@ var MediaListView = React.createClass({
     return{
       isLoading: false,
       query: '',
-      resultsData: []
+      resultsData: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 != row2
+      })
     };
+  },
+  componentDidMount: function(){
+    this.searchMedia('mission impossible');
+  },
+  getDataSource: function(mediaItems: Array<any>): ListView.DataSource{
+    return this.state.resultsData.cloneWithRows(mediaItems);
   },
   _urlForQuery: function(query: string): string{
     if(query.length > 2){
@@ -62,7 +71,7 @@ var MediaListView = React.createClass({
       if (!LOADING[query]) {
         this.setState({
           isLoading: false,
-          resultsData: cachedResultsForQuery
+          resultsData: this.getDataSource(cachedResultsForQuery)
         });
       }
       else{
@@ -89,7 +98,8 @@ var MediaListView = React.createClass({
         resultsCache.dataForQuery[query] = undefined;
 
         this.setState({
-          isLoading: false
+          isLoading: false,
+          resultsData: this.getDataSource([])
         });
       })
       .then((responseData) => {
@@ -98,10 +108,32 @@ var MediaListView = React.createClass({
 
         this.setState({
           isLoading: false,
-          resultsData: resultsCache.dataForQuery[query]
+          resultsData: this.getDataSource(resultsCache.dataForQuery[query])
         });
       })
     }
+  },
+  renderSeparator: function(
+    sectionId: number | string,
+    rowId: number | string,
+    adjacentRowHighlighted: boolean
+  ){
+    return(
+      <View
+        key={"SEP_"+sectionId+rowId}
+        style={[styles.listView.rowSeparator, adjacentRowHighlighted && styles.listView.rowSeparatorHighlighted]}
+        />
+    );
+  },
+  renderRow: function(
+    media: Object,
+    sectionId: number | string,
+    rowId: number | string,
+    highlightRowFunction: (sectionId: ?number | string, rowId: ?number | string) => void
+  ){
+    return(
+      <Text>{media.trackName}</Text>
+    );
   },
   render(){
     return(
@@ -113,9 +145,14 @@ var MediaListView = React.createClass({
             this.clearTimeout(this.timeoutID);
             this.timeoutID = this.setTimeout(() => this.searchMedia(searchString), 250);
           }}/>
-          <Text>
-            Bacon ipsum dolor amet ham hock brisket alcatra, shankle pork chop picanha hamburger. Tongue tail sausage bacon bresaola beef shoulder chicken venison shankle corned beef strip steak. T-bone short ribs sirloin tenderloin, beef tongue pork loin short loin beef ribs shank flank. Ball tip cupim sirloin boudin ribeye brisket flank. Chuck swine flank beef ribs, pastrami ham fatback strip steak landjaeger.
-          </Text>
+          <View style={[styles.listView.rowSeparator, {marginLeft:0}]}/>
+          <ListView
+            dataSource={this.state.resultsData}
+            renderRow={this.renderRow}
+            renderSeparator={this.renderSeparator}
+            automaticallyAdjustContentInsets={false}
+            keyboardDismissMode='on-drag'
+            />
         </View>
       );
     }
