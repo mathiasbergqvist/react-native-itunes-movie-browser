@@ -7,6 +7,7 @@ import {
   ActivityIndicatorIOS,
   ListView
 } from 'react-native';
+var MediaCell = require('./media-cell');
 import TimerMixin from 'react-timer-mixin';
 
 var styles = require('../style');
@@ -132,7 +133,11 @@ var MediaListView = React.createClass({
     highlightRowFunction: (sectionId: ?number | string, rowId: ?number | string) => void
   ){
     return(
-      <Text>{media.trackName}</Text>
+      <MediaCell
+        media={media}
+        onHighlight={() => highlightRowFunction(sectionId, rowId)}
+        onDeHighlight={() => highlightRowFunction(null, null)}
+        />
     );
   },
   render(){
