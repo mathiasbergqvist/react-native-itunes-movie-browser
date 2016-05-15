@@ -11,6 +11,7 @@ import {
 
 var styles = require('./style');
 var MediaListView = require('./components/media-list-view');
+var MediaDetailedView = require('./components/media-detailed-view').default;
 StatusBarIOS.setStyle('light-content');
 
 class iTunesBrowser extends Component {

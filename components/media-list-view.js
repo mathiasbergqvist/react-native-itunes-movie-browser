@@ -7,8 +7,11 @@ import {
   ActivityIndicatorIOS,
   ListView
 } from 'react-native';
-var MediaCell = require('./media-cell');
+
 import TimerMixin from 'react-timer-mixin';
+
+var MediaCell = require('./media-cell');
+var MediaDetailedView = require('./media-detailed-view');
 
 var styles = require('../style');
 var API_URL = 'https://itunes.apple.com/search';
@@ -104,8 +107,11 @@ var MediaListView = React.createClass({
         });
       })
       .then((responseData) => {
+        return responseData.results.filter((e) => e.wrapperType !== 'collection');
+      })
+      .then((responseData) => {
         LOADING[query] = false;
-        resultsCache.dataForQuery[query] = responseData.results;
+        resultsCache.dataForQuery[query] = responseData;
 
         this.setState({
           isLoading: false,
@@ -135,10 +141,18 @@ var MediaListView = React.createClass({
     return(
       <MediaCell
         media={media}
+        onSelect={() => this.selectMediaItem(media)}
         onHighlight={() => highlightRowFunction(sectionId, rowId)}
         onDeHighlight={() => highlightRowFunction(null, null)}
         />
     );
+  },
+  selectMediaItem: function(mediaItem){
+    this.props.navigator.push({
+      title: 'Media Details',
+      component: MediaDetailedView,
+      passProps: {mediaItem}
+    });
   },
   render(){
     var content = null;

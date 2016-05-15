@@ -45,6 +45,7 @@ var MediaCell = React.createClass({
     return(
       <View>
         <TouchableHighlight
+          onPress={this.props.onSelect}
           onShowUnderlay={this.props.onHighlight}
           onHideUnderLay={this.props.onDeHighlight}
           >
