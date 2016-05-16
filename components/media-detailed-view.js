@@ -9,7 +9,7 @@ import {
   View
 } from 'react-native';
 
-var styles = require('../style');
+var styles = require('../style').detailView;
 
 var MediaDetailedView = React.createClass({
   render(){
