@@ -54,7 +54,7 @@ var MediaListView = React.createClass({
     };
   },
   componentDidMount: function(){
-    this.searchMedia('mission impossible');
+    this.searchMedia('star wars');
   },
   getDataSource: function(mediaItems: Array<any>): ListView.DataSource{
     return this.state.resultsData.cloneWithRows(mediaItems);
@@ -64,7 +64,7 @@ var MediaListView = React.createClass({
       return API_URL + '?media=movie&term=' + encodeURIComponent(query);
     }
     else{
-      API_URL + '?media=movie&term=mission+impossible';
+      API_URL + '?media=movie&term=star+wars';
     }
   },
   searchMedia: function(query: string){
